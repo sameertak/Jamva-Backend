@@ -1,0 +1,4 @@
+.idea
+/media
+/migations
+db.sqlite3
