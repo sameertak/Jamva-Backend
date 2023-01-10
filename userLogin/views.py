@@ -26,7 +26,7 @@ class OtpLogin(APIView):
     permission_classes = [AllowAny]
 
     @staticmethod
-    def get(request, phone, name):
+    def get(phone, name):
         global user
         try:
             user = phoneModel.objects.get(name=name)
@@ -88,9 +88,20 @@ class OtpLogin(APIView):
             )
 
 
-class userDetail(APIView):
+class userVerify(APIView):
     permission_classes = [AllowAny]
 
+    @staticmethod
     def post(request):
         id = request.data["id"]
+
+        try:
+            phoneModel.objects.get(id=id)
+            return Response(
+                status=status.HTTP_200_OK
+            )
+        except:
+            return Response(
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
