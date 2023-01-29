@@ -59,3 +59,13 @@ class OrderSerializers(serializers.ModelSerializer):
     class Meta:
         model = orderModel
         fields = ('quantity', 'price')
+
+
+class FinalOrderSerializers(serializers.ModelSerializer):
+    foodId = models.IntegerField()
+    quantity = models.IntegerField()
+    status = models.BooleanField()
+
+    class Meta:
+        model = orderModel
+        fields = ('foodId', 'quantity', 'status')

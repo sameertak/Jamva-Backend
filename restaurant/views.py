@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from .models import menuModel, restaurantModel, categoryModel, orderModel
 from .serializers import MenuSerializers, RestaurantSerializers, CategorySerializers, CategoryMenuSerializers, \
-    OrderSerializers
+    OrderSerializers, FinalOrderSerializers
 
 
 class RestMenu(APIView):
@@ -165,10 +165,10 @@ class UserOrder(APIView):
 
     @staticmethod
     def post(request):
-        global serializer
+        global totalQuantity, totalPrice, userId, resId
 
         res = request.data
-
+        userId, resId = res['userId'], res['resId']
         orderModel(
             userId=res['userId'],
             resId=res['resId'],
@@ -177,7 +177,7 @@ class UserOrder(APIView):
             price=res['price']
         ).save()
 
-        q = f"SELECT * FROM restaurant_ordermodel WHERE status=False AND userId='{res['userId']}' AND resId='{res['resId']}'"
+        q = f"SELECT * FROM restaurant_ordermodel WHERE status=False AND userId='{userId}' AND resId='{resId}'"
         queryset = orderModel.objects.raw(q)
         serializer = OrderSerializers(queryset, many=True)
         totalQuantity, totalPrice= 0, 0
@@ -196,6 +196,61 @@ class UserOrder(APIView):
             }
         )
 
+    @staticmethod
+    def get(request):
+        try:
+            q = f"SELECT * FROM restaurant_ordermodel WHERE status=False AND userId='{userId}' AND resId='{resId}'"
+            queryset = orderModel.objects.raw(q)
+            serializer = OrderSerializers(queryset, many=True)
+            totalQuantity, totalPrice = 0, 0
+
+            for i in serializer.data:
+                totalQuantity += i['quantity']
+                totalPrice += i['price']
+            return Response(
+                status=status.HTTP_200_OK,
+                data={
+                    "data": {
+                        "totalQuantity": totalQuantity,
+                        "totalPrice": totalPrice
+                    }
+                }
+            )
+        except:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND,
+                data={
+                    "data": {
+                        "Error"
+                    }
+                }
+            )
+
+
+class FinalOrder(APIView):
+    permission_classes = [AllowAny]
+
+    @staticmethod
+    def post(request):
+        res = request.data
+        # q = f"SELECT o.* FROM restaurant_ordermodel o INNER JOIN restaurant_menumodel m ON o.foodId=m.id WHERE " \
+        #     f"o.status='{res['status']}' AND o.userId='{res['userId']}' AND o.resId='{res['resId']}' "
+
+        q = f"SELECT o.* FROM restaurant_ordermodel o INNER JOIN restaurant_menumodel m ON o.foodId=m.id WHERE o.status='{res['status']}' AND o.userId='{res['userId']}' AND o.resId='{res['resId']}'"
+        queryset = orderModel.objects.raw(q)
+        serializer1 = FinalOrderSerializers(queryset, many=True)
+        print(serializer1.data)
+
+        q = f"SELECT m.* FROM restaurant_menumodel m INNER JOIN restaurant_ordermodel o ON m.id=o.foodId WHERE o.status='{res['status']}' AND o.userId='{res['userId']}' AND o.resId='{res['resId']}'"
+        queryset = menuModel.objects.raw(q)
+        serializer2 = MenuSerializers(queryset)
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data={
+                "data" : serializer.data
+            }
+        )
     # @staticmethod
     # def post(request):
     #     res = request.data
