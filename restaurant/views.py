@@ -233,24 +233,35 @@ class FinalOrder(APIView):
     @staticmethod
     def post(request):
         res = request.data
-        # q = f"SELECT o.* FROM restaurant_ordermodel o INNER JOIN restaurant_menumodel m ON o.foodId=m.id WHERE " \
-        #     f"o.status='{res['status']}' AND o.userId='{res['userId']}' AND o.resId='{res['resId']}' "
 
         q = f"SELECT o.* FROM restaurant_ordermodel o INNER JOIN restaurant_menumodel m ON o.foodId=m.id WHERE o.status='{res['status']}' AND o.userId='{res['userId']}' AND o.resId='{res['resId']}'"
         queryset = orderModel.objects.raw(q)
         serializer1 = FinalOrderSerializers(queryset, many=True)
-        print(serializer1.data)
 
         q = f"SELECT m.* FROM restaurant_menumodel m INNER JOIN restaurant_ordermodel o ON m.id=o.foodId WHERE o.status='{res['status']}' AND o.userId='{res['userId']}' AND o.resId='{res['resId']}'"
         queryset = menuModel.objects.raw(q)
-        serializer2 = MenuSerializers(queryset)
+        serializer2 = MenuSerializers(queryset, many=True)
 
         return Response(
             status=status.HTTP_200_OK,
             data={
-                "data" : serializer.data
+                "data1" : serializer1.data,
+                "data2" : serializer2.data
             }
         )
+
+# class FinalOrder(APIView):
+#     @staticmethod
+#     def post(request):
+#         res = request.data
+#
+#         list_of_items = res['foodItemIds']
+#
+#         q = f"SELECT * FROM restaurant_menumodels WHERE id in {tuple(list_of_items)}"
+#         queryset = menuModel.objects.raw(q)
+#         serializer = MenuSerializers(queryset, many=True)
+#
+#
     # @staticmethod
     # def post(request):
     #     res = request.data
