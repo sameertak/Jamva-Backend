@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import phoneModel
+from decouple import config
 import os
 from twilio.rest import Client
 
@@ -21,7 +22,7 @@ class generateKey:
         return str(phone) + str(datetime.date(datetime.now()))
 
 
-class otpLogin(APIView):
+class OtpLogin(APIView):
     permission_classes = [AllowAny]
 
     @staticmethod
@@ -39,13 +40,13 @@ class otpLogin(APIView):
         key = base64.b32encode(keygen.returnValue(phone).encode())
         OTP = pyotp.TOTP(key, interval=EXPIRY_TIME)
 
-        account_sid = ""
-        auth_token = ""
+        account_sid = config('account_sid')
+        auth_token = config('auth_token')
         client = Client(account_sid, auth_token)
 
         client.messages.create(
             body=f"Your OTP is {OTP.now()}",
-            from_="+14454557380",
+            from_=config('from_'),
             to=f"+91{phone}"
         )
 
@@ -85,3 +86,24 @@ class otpLogin(APIView):
                     "data" : "Something went wrong, try again later..."
                 }
             )
+
+
+class userVerify(APIView):
+    permission_classes = [AllowAny]
+
+    @staticmethod
+    def post(request):
+        id = request.data["id"]
+
+        try:
+            phoneModel.objects.get(id=id)
+            return Response(
+                data={True},
+                status=status.HTTP_200_OK
+            )
+        except:
+            return Response(
+                data={ },
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+

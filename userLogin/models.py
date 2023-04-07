@@ -10,3 +10,8 @@ class phoneModel(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+class userModel(models.Model):
+    name = models.ForeignKey(phoneModel, on_delete=models.CASCADE)
+    orders = models.CharField(max_length=20)
+    profile = models.ImageField(default='profile.png')

@@ -1,14 +1,15 @@
+import os
 from datetime import timedelta
 from pathlib import Path
-
+from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = "django-insecure-(wn-1ca)-gtc9wvw!6xqawtjvgq@#zpn(r%y6i99f^y6p33!(h"
+SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', '192.168.29.57']
 CORS_ORIGIN_ALLOW_ALL=True
 
 
@@ -22,6 +23,9 @@ INSTALLED_APPS = [
     "userLogin",
     "rest_framework",
     "corsheaders",
+    "restaurant",
+    "rest_framework.authtoken",
+    "rest_framework_simplejwt"
 ]
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -102,7 +106,7 @@ CORS_ALLOW_HEADERS = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
-    "http://localhost:5173"
+    "http://localhost:5173",
 ]
 
 ROOT_URLCONF = "Jamva.urls"
@@ -149,6 +153,9 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = '/static/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
