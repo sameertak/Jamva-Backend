@@ -12,7 +12,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*', '192.168.29.57']
 CORS_ORIGIN_ALLOW_ALL=True
 
-
+STRIPE_API_KEY = config('STRIPE_API_KEY')
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
