@@ -1,5 +1,6 @@
 import base64
 
+from django.db import transaction
 from django.shortcuts import render
 from _datetime import datetime
 from django.core.exceptions import ObjectDoesNotExist
@@ -43,7 +44,7 @@ class OtpLogin(APIView):
         account_sid = config('account_sid')
         auth_token = config('auth_token')
         client = Client(account_sid, auth_token)
-
+        # print(OTP.now())
         client.messages.create(
             body=f"Your OTP is {OTP.now()}",
             from_=config('from_'),
@@ -63,8 +64,10 @@ class OtpLogin(APIView):
         key = base64.b32encode(keygen.returnValue(phone).encode())
         OTP = pyotp.TOTP(key, interval=EXPIRY_TIME)
         try:
+            print(request.data['resId'])
             if OTP.verify(request.data["otp"]):
                 user.is_verified = True
+                user.resId = request.data['resId']
                 user.save()
                 return Response(
                     status=status.HTTP_200_OK,
@@ -107,3 +110,23 @@ class userVerify(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
+
+class Logout(APIView):
+    permission_classes = [AllowAny]
+
+    @staticmethod
+    def post(request):
+        res = request.data
+
+        q = f"UPDATE userlogin_phonemodel SET is_verified='0' WHERE id = '{res['userId']}'"
+
+        with transaction.atomic():
+            phoneModel.objects.raw(q)
+            updated_user = phoneModel.objects.select_for_update().get(id=res['userId'])
+            updated_user.is_verified = 0
+            updated_user.save()
+        print(updated_user)
+        return Response(
+            status=status.HTTP_200_OK,
+            data={"message": "Successfully Updated!"}
+        )
